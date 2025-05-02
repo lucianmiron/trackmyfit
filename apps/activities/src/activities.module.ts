@@ -1,23 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ActivitiesController } from './activities.controller';
 import { ActivitiesService } from './activities.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { DatabaseModule } from '@app/common';
+import { Activity } from './entities/activity.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'db',
-      port: 5432,
-      password: 'vasile94',
-      username: 'postgres',
-      entities: ['dist/**/*.entity{.ts,.js}'],
-      database: 'trackmyfit',
-      synchronize: true,
-      logging: true,
-    }),
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
@@ -28,6 +18,8 @@ import * as Joi from 'joi';
         POSTGRES_DB: Joi.string().required(),
       }),
     }),
+    DatabaseModule,
+    DatabaseModule.forFeature([Activity]),
   ],
   controllers: [ActivitiesController],
   providers: [ActivitiesService],

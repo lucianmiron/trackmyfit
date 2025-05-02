@@ -25,8 +25,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
     volumes:
       - /usr/src/app/node_modules
   postgres:
@@ -45,12 +45,12 @@ services:
       retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+    # networks:
+    #   - app-network
 
-networks:
-  app-network:
-    driver: bridge
+# networks:
+#   app-network:
+#     driver: bridge
 
 volumes:
   postgres_data:
