@@ -20,7 +20,7 @@ FROM node:alpine AS runner
 
 WORKDIR /app
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 # Copy necessary files from the builder stage
 COPY --from=builder /app/next.config.ts ./
@@ -33,4 +33,4 @@ COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3001
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["next dev --turbopack"]

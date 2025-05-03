@@ -7,9 +7,9 @@ export default function Home() {
         <h1 className="text-4xl font-bold mb-8">
           Welcome to Your Fitness Tracking App
         </h1>
-        <p className="mb-4">This is your Next.js frontend with Tailwind CSS.</p>
+        <p className="mb-4">This is your gainstation. :flex:</p>
         <Link href="/activities" className="text-blue-500 underline">
-          View Activities (SSR Example)
+          Start Activity
         </Link>
       </div>
     </main>

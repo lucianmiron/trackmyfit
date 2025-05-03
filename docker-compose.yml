@@ -75,7 +75,7 @@ services:
       activities:
         condition: service_healthy
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://activities:3001
     volumes:
       - /app/node_modules
