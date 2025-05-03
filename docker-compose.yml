@@ -60,8 +60,10 @@ services:
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
+      target: development
       args:
         - NEXT_PUBLIC_API_URL=http://activities:3001
+    command: pnpm dev
     develop:
       watch:
         - action: sync

@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:alpine AS builder
+FROM node:alpine AS development
 
 WORKDIR /app
 
@@ -33,4 +33,4 @@ COPY --from=builder /app/node_modules ./node_modules
 EXPOSE 3001
 
 # Start the application
-CMD ["next dev --turbopack"]
+CMD ["pnpm", "dev"]
