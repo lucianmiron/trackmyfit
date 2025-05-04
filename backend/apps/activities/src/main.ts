@@ -16,10 +16,7 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? 'https://your-production-domain.com'
-        : ['http://localhost:*'],
+    origin: '*',
     methods: '*',
   });
 

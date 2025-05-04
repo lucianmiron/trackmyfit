@@ -23,7 +23,7 @@ export default function Home() {
           >
             Welcome to Your Fitness Tracking App
           </h1>
-          <p className="mb-4">This is your gainstation. :flex:</p>
+          <p className="mb-4">This is your gainstation. 💪😤💪</p>
           <Link
             href="/activities"
             className={`${

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -9,24 +8,25 @@ import {
   ArrowLeft,
   Check,
   X,
-  Save,
   Clock,
   Dumbbell,
   RotateCcw,
-  Moon,
-  Sun,
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import Header from '../components/Header';
+import Toast from '../components/Toast';
+import { fetchFromAPI } from '../../services/api';
+import { useRouter } from 'next/navigation';
 
 // Types
 type WeightUnit = 'kg' | 'lb';
 
 interface ExerciseSet {
+  setNumber: number;
   reps: number;
   weight: number;
   unit: WeightUnit;
-  time: number;
+  duration: number;
 }
 
 interface Exercise {
@@ -70,7 +70,6 @@ const useTimer = (initialTime: number = 0): UseTimerReturn => {
   const resetTimer = useCallback((): void => {
     if (intervalId !== null) {
       window.clearInterval(intervalId);
-      setIntervalId(null);
     }
     setTime(initialTime);
     setIsRunning(false);
@@ -111,6 +110,13 @@ const presetExercises: string[] = [
 
 const FitnessTracker: React.FC = () => {
   const { darkMode } = useTheme();
+  const router = useRouter();
+
+  // Add toast state
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error';
+  } | null>(null);
 
   // Main activity state
   const [activityName, setActivityName] = useState<string>('Workout');
@@ -127,6 +133,37 @@ const FitnessTracker: React.FC = () => {
   const [showExerciseForm, setShowExerciseForm] = useState<boolean>(false);
   const [newExerciseName, setNewExerciseName] = useState<string>('');
   const [showExercisesList, setShowExercisesList] = useState<boolean>(false);
+
+  const handleSave = async () => {
+    const activity = {
+      name: activityName,
+      duration: activityTimer,
+      exercises: exercises,
+    };
+
+    try {
+      const savedActivity = await fetchFromAPI('activities', {
+        method: 'POST',
+        body: JSON.stringify(activity),
+      });
+
+      setToast({
+        message: 'Activity saved successfully!',
+        type: 'success',
+      });
+
+      // Navigate to the summary page after a brief delay
+      setTimeout(() => {
+        router.push(`/activities/${savedActivity.id}`);
+      }, 1000);
+    } catch (error) {
+      console.error('Error saving activity:', error);
+      setToast({
+        message: 'Failed to save activity. Please try again.',
+        type: 'error',
+      });
+    }
+  };
 
   // Current exercise editing (for sets)
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState<
@@ -180,16 +217,29 @@ const FitnessTracker: React.FC = () => {
     if (currentExerciseIndex === null) return;
 
     setExercises((prev) => {
-      const updated = [...prev];
-      updated[currentExerciseIndex].sets.push({
-        reps: repetitions,
-        weight: weight,
-        unit: weightUnit,
-        time: setTimer,
+      const updated = prev.map((exercise, index) => {
+        if (index !== currentExerciseIndex) return exercise;
+
+        // Create new set
+        const newSet = {
+          setNumber: exercise.sets.length + 1,
+          reps: repetitions,
+          weight: weight,
+          unit: weightUnit,
+          duration: setTimer,
+        };
+
+        // Return new exercise object with new sets array
+        return {
+          ...exercise,
+          sets: [...exercise.sets, newSet],
+        };
       });
+
       return updated;
     });
 
+    // Reset form regardless of whether set was added
     setRepetitions(8);
     setWeight(20);
     resetSetTimer();
@@ -202,6 +252,14 @@ const FitnessTracker: React.FC = () => {
         darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'
       }`}
     >
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       <Header />
 
       {/* Activity Name and Timer */}
@@ -210,6 +268,18 @@ const FitnessTracker: React.FC = () => {
           darkMode ? 'bg-gray-800' : 'bg-white'
         } shadow-sm mb-4`}
       >
+        <div className="flex justify-start mb-4">
+          <button
+            onClick={handleSave}
+            className={`px-4 py-2 rounded-md text-white ${
+              darkMode
+                ? 'bg-blue-700 hover:bg-blue-600'
+                : 'bg-blue-600 hover:bg-blue-500'
+            }`}
+          >
+            Save Activity
+          </button>
+        </div>
         <div className="flex justify-between items-center mb-4">
           <input
             type="text"
@@ -217,19 +287,20 @@ const FitnessTracker: React.FC = () => {
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setActivityName(e.target.value)
             }
-            className={`text-xl font-semibold bg-transparent border-b ${
-              darkMode
-                ? 'border-gray-600 focus:border-blue-400 text-white'
-                : 'border-gray-300 focus:border-blue-500'
-            } focus:outline-none w-3/5`}
-            placeholder="Activity Name"
+            className={`text-xl font-semibold bg-transparent ${
+              darkMode ? 'text-gray-100' : 'text-gray-900'
+            }`}
           />
-          <div className="flex items-center">
-            <Clock
-              size={16}
-              className={`mr-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
-            />
-            <span className="text-xl font-mono">{formatActivityTime()}</span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              <Clock
+                size={16}
+                className={`mr-1 ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}
+              />
+              <span className="text-xl font-mono">{formatActivityTime()}</span>
+            </div>
           </div>
         </div>
         <div className="flex justify-end">
@@ -307,15 +378,15 @@ const FitnessTracker: React.FC = () => {
                               darkMode ? 'border-gray-700' : 'border-gray-100'
                             }`}
                           >
-                            <td className="py-2">{setIndex + 1}</td>
+                            <td className="py-2">{set.setNumber}</td>
                             <td className="py-2">{set.reps}</td>
                             <td className="py-2">
                               {set.weight} {set.unit}
                             </td>
                             <td className="py-2">
-                              {`${Math.floor(set.time / 60)
+                              {`${Math.floor(set.duration / 60)
                                 .toString()
-                                .padStart(2, '0')}:${(set.time % 60)
+                                .padStart(2, '0')}:${(set.duration % 60)
                                 .toString()
                                 .padStart(2, '0')}`}
                             </td>
