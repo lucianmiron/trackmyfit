@@ -17,13 +17,13 @@ export class ActivitiesController {
     return this.activitiesService.findAll();
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: number): Promise<Activity> {
-  //   return this.activitiesService.findOne(id);
-  // }
-
   @Get('/health')
   healthCheck() {
     return { status: 'ok' };
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: number): Promise<Activity> {
+    return this.activitiesService.findOne(id);
   }
 }

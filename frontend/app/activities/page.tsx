@@ -16,6 +16,8 @@ import {
   Moon,
   Sun,
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import Header from '../components/Header';
 
 // Types
 type WeightUnit = 'kg' | 'lb';
@@ -108,8 +110,7 @@ const presetExercises: string[] = [
 ];
 
 const FitnessTracker: React.FC = () => {
-  // Theme state
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const { darkMode } = useTheme();
 
   // Main activity state
   const [activityName, setActivityName] = useState<string>('Workout');
@@ -201,27 +202,7 @@ const FitnessTracker: React.FC = () => {
         darkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'
       }`}
     >
-      {/* Header */}
-      <header
-        className={`${
-          darkMode ? 'bg-blue-800' : 'bg-blue-600'
-        } text-white p-4 shadow-md`}
-      >
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">Fitness Tracker</h1>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-full hover:bg-blue-700"
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-            <button className="p-2 rounded-full hover:bg-blue-700">
-              <Save size={20} />
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       {/* Activity Name and Timer */}
       <div
