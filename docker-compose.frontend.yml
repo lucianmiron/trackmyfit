@@ -1,0 +1,29 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+      target: development
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3001
+    command: pnpm dev
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    volumes:
+      - /app/node_modules
+    networks:
+      - trackmyfit_network
+
+networks:
+  trackmyfit_network:
+    external: true

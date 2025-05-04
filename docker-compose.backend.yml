@@ -1,0 +1,48 @@
+services:
+  activities:
+    build:
+      context: ./backend
+      dockerfile: ./apps/activities/Dockerfile
+      target: development
+    command: pnpm run start:dev activities
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/apps/activities
+          target: /usr/src/app/apps/activities
+          ignore:
+            - node_modules/
+    env_file:
+      - ./backend/apps/activities/.env
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - 3001:3001
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'wget',
+          '--spider',
+          '-q',
+          'http://localhost:3001/activities/health',
+        ]
+      interval: 300s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - /usr/src/app/node_modules
+    networks:
+      - trackmyfit_network
+
+networks:
+  trackmyfit_network:
+    external: true
