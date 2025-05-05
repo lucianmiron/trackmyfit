@@ -12,9 +12,11 @@ import * as Joi from 'joi';
         POSTGRES_USER: Joi.string().required(),
         POSTGRES_PASSWORD: Joi.string().required(),
         POSTGRES_DB: Joi.string().required(),
+        JWT_SECRET: Joi.string().required(),
+        JWT_EXPIRATION: Joi.string().required(),
         PORT: Joi.string().required(),
       }),
     }),
   ],
 })
-export class ActivityConfigModule {}
+export class AuthenticationConfigModule {}

@@ -35,11 +35,59 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    depends_on:
-      postgres:
-        condition: service_healthy
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
     volumes:
       - /usr/src/app/node_modules
+    networks:
+      - trackmyfit_network
+  auth:
+    build:
+      context: ./backend
+      dockerfile: ./apps/auth/Dockerfile
+      target: development
+    command: pnpm run start:dev auth
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/apps/auth
+          target: /usr/src/app/apps/auth
+          ignore:
+            - node_modules/
+    env_file:
+      - ./backend/apps/auth/.env
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - 3002:3002
+    healthcheck:
+      test:
+        ['CMD', 'wget', '--spider', '-q', 'http://localhost:3002/auth/health']
+      interval: 300s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    volumes:
+      - /usr/src/app/node_modules
+    networks:
+      - trackmyfit_network
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - '5672:5672'
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - trackmyfit_network
 
