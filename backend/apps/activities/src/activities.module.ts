@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ActivitiesController } from './activities.controller';
 import { ActivitiesService } from './activities.service';
-import { DatabaseModule, LoggerModule } from '@app/common';
+import { AUTH_SERVICE, DatabaseModule, LoggerModule } from '@app/common';
 import { Activity } from './entities/activity.entity';
 import { Exercise } from './entities/exercise.entity';
 import { ExerciseSet } from './entities/exercise-set.entity';
 import { ActivityConfigModule } from './modules/config.module';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -13,6 +15,19 @@ import { ActivityConfigModule } from './modules/config.module';
     DatabaseModule,
     DatabaseModule.forFeature([Activity, Exercise, ExerciseSet]),
     LoggerModule,
+    ClientsModule.registerAsync([
+      {
+        name: AUTH_SERVICE,
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.RMQ,
+          options: {
+            urls: [configService.getOrThrow<string>('RABBITMQ_URI')],
+            queue: 'auth',
+          },
+        }),
+        inject: [ConfigService],
+      },
+    ]),
   ],
   controllers: [ActivitiesController],
   providers: [ActivitiesService],

@@ -11,15 +11,13 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
 
-  // Set up global prefix for all routes
-  // app.setGlobalPrefix('api');
-
   app.enableCors({
-    origin: '*',
-    methods: '*',
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 
-  const configService = app.get(ConfigService); // Retrieve the injectable ConfigService
+  const configService = app.get(ConfigService);
   await app.listen(configService.get('PORT'));
 }
 bootstrap();

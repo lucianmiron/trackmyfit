@@ -5,7 +5,8 @@ services:
       dockerfile: ./Dockerfile
       target: development
       args:
-        - NEXT_PUBLIC_API_URL=http://localhost:3001
+        - NEXT_PUBLIC_API_ACTIVITIES_URL=http://localhost:3001
+        - NEXT_PUBLIC_API_AUTH_URL=http://localhost:3002
     command: pnpm dev
     develop:
       watch:
@@ -18,7 +19,8 @@ services:
       - 3000:3000
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - NEXT_PUBLIC_API_ACTIVITIES_URL=http://localhost:3001
+      - NEXT_PUBLIC_API_AUTH_URL=http://localhost:3002
     volumes:
       - /app/node_modules
     networks:

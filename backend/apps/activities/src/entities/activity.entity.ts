@@ -18,6 +18,9 @@ export class Activity {
   @Column({ type: 'int' })
   duration: number;
 
+  @Column({ type: 'int' })
+  userId: number;
+
   @CreateDateColumn()
   startDate: Date;
 

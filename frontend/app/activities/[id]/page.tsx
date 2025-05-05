@@ -2,7 +2,7 @@
 
 import { useTheme } from '../../context/ThemeContext';
 import { useEffect, useState } from 'react';
-import { fetchFromAPI } from '../../../services/api';
+import { ACTIVITIES_API_URL, fetchFromAPI } from '../../../services/api';
 import Header from '../../components/Header';
 import { Clock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -32,7 +32,10 @@ export default function ActivitySummary() {
   useEffect(() => {
     const fetchActivity = async () => {
       try {
-        const data = await fetchFromAPI(`activities/${params.id}`);
+        const data = await fetchFromAPI(
+          ACTIVITIES_API_URL,
+          `activities/${params.id}`
+        );
         setActivity(data);
       } catch (error) {
         console.error('Error fetching activity:', error);

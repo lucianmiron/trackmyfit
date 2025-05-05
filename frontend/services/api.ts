@@ -1,15 +1,20 @@
 // Base API service for communicating with the NestJS backend
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+export const ACTIVITIES_API_URL =
+  process.env.NEXT_PUBLIC_API_ACTIVITIES_URL || 'http://localhost:3001';
+
+export const AUTH_API_URL =
+  process.env.NEXT_PUBLIC_API_AUTH_URL || 'http://localhost:3002';
 
 interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
 export async function fetchFromAPI(
+  baseUrl: string,
   endpoint: string,
   options: FetchOptions = {}
 ) {
-  const url = `${API_URL}/${endpoint}`;
+  const url = `${baseUrl}/${endpoint}`;
   const { skipAuth, ...fetchOptions } = options;
 
   // Default options for all requests
@@ -46,7 +51,7 @@ export async function fetchFromAPI(
 // Auth specific API calls
 export const auth = {
   async login(email: string, password: string) {
-    return fetchFromAPI('auth/login', {
+    return fetchFromAPI(AUTH_API_URL, 'login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
       skipAuth: true,
@@ -54,7 +59,7 @@ export const auth = {
   },
 
   async register(email: string, password: string) {
-    return fetchFromAPI('auth/register', {
+    return fetchFromAPI(AUTH_API_URL, 'users', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
       skipAuth: true,
@@ -62,13 +67,14 @@ export const auth = {
   },
 
   async logout() {
-    return fetchFromAPI('auth/logout', {
-      method: 'POST',
-    });
+    // Set the Authentication cookie to expire immediately
+    document.cookie =
+      'Authentication=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    return null;
   },
 
   async getCurrentUser() {
-    return fetchFromAPI('auth/me', {
+    return fetchFromAPI(AUTH_API_URL, 'users', {
       method: 'GET',
     }).catch(() => null); // Silently fail if not authenticated
   },

@@ -1,11 +1,27 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTheme } from './context/ThemeContext';
+import { useAuth } from './context/AuthContext';
 import Header from './components/Header';
+import Toast from './components/Toast';
 
 export default function Home() {
   const { darkMode } = useTheme();
+  const { user } = useAuth();
+  const router = useRouter();
+  const [showLoginToast, setShowLoginToast] = useState(false);
+
+  const handleActivityClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (user) {
+      router.push('/activities');
+    } else {
+      setShowLoginToast(true);
+    }
+  };
 
   return (
     <div
@@ -26,16 +42,26 @@ export default function Home() {
           <p className="mb-4">This is your gainstation. 💪😤💪</p>
           <Link
             href="/activities"
-            className={`${
+            onClick={handleActivityClick}
+            className={`inline-block px-4 py-2 rounded-md ${
               darkMode
-                ? 'text-blue-400 hover:text-blue-300'
-                : 'text-blue-600 hover:text-blue-500'
-            } underline`}
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
           >
             Start Activity
           </Link>
         </div>
       </main>
+      {showLoginToast && (
+        <Toast
+          message="Please log in to start tracking activities"
+          type="error"
+          onClose={() => {
+            setShowLoginToast(false);
+          }}
+        />
+      )}
     </div>
   );
 }

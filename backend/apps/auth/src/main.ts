@@ -20,8 +20,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.useLogger(app.get(Logger));
   app.enableCors({
-    origin: '*',
-    methods: '*',
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
   await app.startAllMicroservices();
   await app.listen(configService.get('PORT'));

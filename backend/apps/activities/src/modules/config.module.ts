@@ -13,6 +13,7 @@ import * as Joi from 'joi';
         POSTGRES_PASSWORD: Joi.string().required(),
         POSTGRES_DB: Joi.string().required(),
         PORT: Joi.string().required(),
+        RABBITMQ_URI: Joi.string().required(),
       }),
     }),
   ],

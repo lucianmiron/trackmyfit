@@ -13,17 +13,21 @@ export class ActivitiesService {
     private readonly activityRepository: Repository<Activity>,
   ) {}
 
-  async create(activityDto: CreateActivityDto): Promise<Activity> {
+  async create(
+    activityDto: CreateActivityDto,
+    userId: number,
+  ): Promise<Activity> {
     const activity = new Activity();
     activity.name = activityDto.name;
     activity.duration = activityDto.duration;
+    activity.userId = userId;
 
     // Create exercises with their sets - cascading will handle the saving
     activity.exercises = activityDto.exercises.map((exerciseDto) => {
       const exercise = new Exercise();
       exercise.name = exerciseDto.name;
 
-      exercise.sets = exerciseDto.sets.map((setDto, index) => {
+      exercise.sets = exerciseDto.sets.map((setDto) => {
         const set = new ExerciseSet();
         set.setNumber = setDto.setNumber;
         set.reps = setDto.reps;
@@ -39,8 +43,9 @@ export class ActivitiesService {
     return this.activityRepository.save(activity);
   }
 
-  async findAll(): Promise<Activity[]> {
+  async findAll(userId: number): Promise<Activity[]> {
     return this.activityRepository.find({
+      where: { userId },
       relations: {
         exercises: {
           sets: true,
@@ -49,9 +54,9 @@ export class ActivitiesService {
     });
   }
 
-  async findOne(id: number): Promise<Activity> {
+  async findOne(id: number, userId: number): Promise<Activity> {
     return this.activityRepository.findOne({
-      where: { id },
+      where: { id, userId },
       relations: {
         exercises: {
           sets: true,
