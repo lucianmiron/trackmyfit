@@ -12,10 +12,10 @@ import {
   Dumbbell,
   RotateCcw,
 } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext';
-import Header from '../components/Header';
-import Toast from '../components/Toast';
-import { ACTIVITIES_API_URL, fetchFromAPI } from '../../services/api';
+import { useTheme } from '../../context/ThemeContext';
+import Header from '../../components/Header';
+import Toast from '../../components/Toast';
+import { ACTIVITIES_API_URL, fetchFromAPI } from '../../../services/api';
 import { useRouter } from 'next/navigation';
 
 // Types

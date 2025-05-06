@@ -7,21 +7,7 @@ import Header from '../../components/Header';
 import { Clock, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-
-interface Activity {
-  id: number;
-  name: string;
-  duration: number;
-  exercises: {
-    name: string;
-    sets: {
-      reps: number;
-      weight: number;
-      unit: 'kg' | 'lb';
-      duration: number;
-    }[];
-  }[];
-}
+import { Activity } from '../../types';
 
 export default function ActivitySummary() {
   const { darkMode } = useTheme();
@@ -94,7 +80,7 @@ export default function ActivitySummary() {
       <div className="p-4 max-w-4xl mx-auto">
         <div className="mb-6 flex items-center gap-4">
           <Link
-            href="/activities"
+            href="/activities/overview"
             className={`p-2 rounded-full ${
               darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
             }`}

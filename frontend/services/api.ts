@@ -71,9 +71,9 @@ export const auth = {
   },
 
   async logout() {
-    // Set the Authentication cookie to expire immediately
-    document.cookie =
-      'Authentication=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    await fetchFromAPI(AUTH_API_URL, 'logout', {
+      method: 'POST',
+    });
     return null;
   },
 

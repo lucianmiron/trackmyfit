@@ -17,7 +17,7 @@ export default function Home() {
   const handleActivityClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (user) {
-      router.push('/activities');
+      router.push('/activities/new');
     } else {
       setShowLoginToast(true);
     }
@@ -42,7 +42,7 @@ export default function Home() {
           </h1>
           <p className="mb-4">This is your gainstation. 💪😤💪</p>
           <Link
-            href="/activities"
+            href="/activities/new"
             onClick={handleActivityClick}
             className={`inline-block px-4 py-2 rounded-md ${
               darkMode
@@ -51,6 +51,18 @@ export default function Home() {
             }`}
           >
             Start Activity
+          </Link>
+          <p className="mt-8 mb-4" />
+          <Link
+            href="/activities/overview"
+            // onClick={handleActivityClick}
+            className={`inline-block px-4 py-2 rounded-md ${
+              darkMode
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+          >
+            See all Activities
           </Link>
         </div>
       </main>
