@@ -22,11 +22,7 @@ import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-clas
     }),
   ],
 })
-export class DatabaseModule implements OnModuleInit {
-  onModuleInit() {
-    console.log('Database module initialized');
-  }
-
+export class DatabaseModule {
   static forFeature(models: EntityClassOrSchema[]) {
     return TypeOrmModule.forFeature(models);
   }

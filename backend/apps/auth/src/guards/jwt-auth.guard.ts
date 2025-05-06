@@ -1,4 +1,4 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Logger } from '@nestjs/common';
 
@@ -9,10 +9,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err, user) {
+  handleRequest(err, user, info) {
     if (err || !user) {
-      this.logger.error('Encountered error in JWT validation', err);
-      throw new UnauthorizedException(err);
+      this.logger.error(
+        `Encountered error in JWT validation: ${JSON.stringify(err || info)}`,
+      );
     }
     return user;
   }
