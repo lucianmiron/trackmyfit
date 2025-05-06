@@ -1,0 +1,16 @@
+services:
+  rabbitmq:
+    image: rabbitmq
+    ports:
+      - '5672:5672'
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'check_port_connectivity']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - trackmyfit_network
+
+networks:
+  trackmyfit_network:
+    external: true

@@ -37,7 +37,8 @@ export default function Home() {
               darkMode ? 'text-gray-100' : 'text-gray-900'
             }`}
           >
-            Welcome to Your Fitness Tracking App
+            Welcome {user ? `${user.email.split('@')[0]}` : ''} to Your Fitness
+            Tracking App
           </h1>
           <p className="mb-4">This is your gainstation. 💪😤💪</p>
           <Link

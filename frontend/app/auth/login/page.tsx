@@ -25,7 +25,16 @@ export default function Login() {
       await login(email, password);
       router.push('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to login');
+      if (err instanceof Error) {
+        try {
+          const errorData = JSON.parse(err.message);
+          setError(errorData.message || 'Failed to login');
+        } catch {
+          setError(err.message || 'Failed to login');
+        }
+      } else {
+        setError('Failed to login');
+      }
     } finally {
       setLoading(false);
     }

@@ -41,7 +41,7 @@ export class CreateExerciseDto {
   name: string;
 
   @IsDefined()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'At least one set is required' })
   @ValidateNested({ each: true })
   @Type(() => ExerciseSetDto)
   sets: ExerciseSetDto[];

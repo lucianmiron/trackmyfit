@@ -12,6 +12,11 @@ services:
           target: /usr/src/app/apps/activities
           ignore:
             - node_modules/
+        - action: sync
+          path: ./backend/libs/common
+          target: /usr/src/app/libs/common
+          ignore:
+            - node_modules/
     env_file:
       - ./backend/apps/activities/.env
     environment:

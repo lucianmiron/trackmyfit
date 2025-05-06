@@ -10,6 +10,7 @@ import { LoggerModule as LoggerModulePino } from 'nestjs-pino';
           options: {
             colorize: true,
             singleLine: true,
+            translateTime: 'yyyy-dd-mm, h:MM:ss TT',
           },
         },
       },

@@ -35,8 +35,12 @@ export async function fetchFromAPI(
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || response.statusText);
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || response.statusText);
+    }
+    throw new Error((await response.text()) || response.statusText);
   }
 
   // For endpoints that don't return JSON (like logout)
