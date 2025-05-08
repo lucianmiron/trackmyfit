@@ -1,11 +1,11 @@
 steps:
   # Activities
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/activities', '-f', 'apps/activities/Dockerfile', '.']
+    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/activities', '-f', 'backend/apps/activities/Dockerfile', 'backend']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'europe-central2-docker.pkg.dev/trackmyfit-459021/activities']
   # Auth
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth', '-f', 'apps/auth/Dockerfile', '.']
+    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth', '-f', 'backend/apps/auth/Dockerfile', 'backend']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth']
