@@ -16,7 +16,7 @@ describe('ActivitiesController', () => {
 
   describe('root', () => {
     it('should return "Hello World!"', () => {
-      expect(activitiesController.findAll()).toBe('Hello World!');
+      expect(activitiesController.findAll({} as any)).toBe('Hello World!');
     });
   });
 });

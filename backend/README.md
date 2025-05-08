@@ -16,6 +16,11 @@ docker run sleepr_reservations
 docker-compose up --build (forces build) --watch
 docker-compose down -v (from volumes)
 
+Running from backend/apps/activities folder
+docker build -t activities -f Dockerfile ../../
+docker tag activities europe-central2-docker.pkg.dev/trackmyfit-459021/activities/production
+docker push europe-central2-docker.pkg.dev/trackmyfit-459021/activities/production
+
 # Google cloud services
 
 Artifacts Registry
