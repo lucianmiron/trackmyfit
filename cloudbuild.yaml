@@ -1,13 +1,13 @@
 steps:
   # Activities
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/activities/activities-image:latest', '-f', 'backend/apps/activities/Dockerfile', 'backend']
+    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/activities/production', '-f', 'backend/apps/activities/Dockerfile', 'backend']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'europe-central2-docker.pkg.dev/trackmyfit-459021/activities/activities-image:latest']
+    args: ['push', 'europe-central2-docker.pkg.dev/trackmyfit-459021/activities/production']
   # Auth
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth/auth-image:latest', '-f', 'backend/apps/auth/Dockerfile', 'backend']
+    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth/production', '-f', 'backend/apps/auth/Dockerfile', 'backend']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth/auth-image:latest']
+    args: ['push', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth/production']
 options:
   logging: CLOUD_LOGGING_ONLY
