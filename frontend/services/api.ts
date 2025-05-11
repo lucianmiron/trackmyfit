@@ -9,6 +9,16 @@ interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
+// Performance calculation parameters interface
+export interface PerformanceCalculationParams {
+  activityName?: string;
+  exerciseName?: string;
+  volumeWeight?: number;
+  durationWeight?: number;
+  fatigueWeight?: number;
+  fatigueModel?: 'position' | 'time' | 'complex';
+}
+
 export async function fetchFromAPI(
   baseUrl: string,
   endpoint: string,
@@ -81,5 +91,27 @@ export const auth = {
     return fetchFromAPI(AUTH_API_URL, 'users', {
       method: 'GET',
     }).catch(() => null); // Silently fail if not authenticated
+  },
+};
+
+// Performance specific API calls
+export const performance = {
+  async getPerformanceData(params: PerformanceCalculationParams = {}) {
+    let endpoint = 'activities/performance';
+    const urlParams = new URLSearchParams();
+
+    // Add all parameters to the URL
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        urlParams.append(key, value.toString());
+      }
+    });
+
+    const queryString = urlParams.toString();
+    if (queryString) {
+      endpoint += `?${queryString}`;
+    }
+    console.log(`Lucian endpoint is: ${endpoint}`);
+    return fetchFromAPI(ACTIVITIES_API_URL, endpoint);
   },
 };

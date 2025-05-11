@@ -6,12 +6,14 @@ import {
   Logger,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { Activity } from './entities/activity.entity';
 import { CreateActivityDto } from './dto/create-activity.dto';
 import { CurrentUser, JwtAuthGuard, UserDto } from '@app/common';
+import { PerformanceParamsDto } from './dto/performance-params.dto';
 
 @Controller('activities')
 export class ActivitiesController {
@@ -34,6 +36,18 @@ export class ActivitiesController {
   @Get('health')
   healthCheck() {
     return { status: 'ok' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('performance')
+  calculatePerformance(
+    @CurrentUser() user: UserDto,
+    @Query() params: PerformanceParamsDto,
+  ) {
+    return this.activitiesService.calculatePerformance(
+      parseInt(user.id),
+      params,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
