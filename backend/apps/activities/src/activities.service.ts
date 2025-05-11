@@ -107,42 +107,57 @@ export class ActivitiesService {
       ? activities.filter((a) => a.name === params.activityName)
       : activities;
 
-    // Group exercises across activities
-    const exerciseGroups: Record<
-      string,
-      {
-        activity: Activity;
-        exercise: Exercise;
-        activityExerciseIndex: number;
-      }[]
-    > = {};
-
+    //start
+    // First, get a complete list of all unique exercises across all activities
+    const allExerciseNames = new Set<string>();
     filteredActivities.forEach((activity) => {
-      activity.exercises.forEach((exercise, index) => {
-        if (!exerciseGroups[exercise.name]) {
-          exerciseGroups[exercise.name] = [];
-        }
-        exerciseGroups[exercise.name].push({
-          activity,
-          exercise,
-          activityExerciseIndex: index,
-        });
+      activity.exercises.forEach((exercise) => {
+        allExerciseNames.add(exercise.name);
       });
     });
 
-    // Filter exercise groups if exerciseName is provided
-    const filteredExerciseNames = params.exerciseName
-      ? [params.exerciseName]
-      : Object.keys(exerciseGroups);
-
-    // TODO resume reading: Calculate performance for each exercise over time
+    // Create result array to hold all exercises
     const result: PerformanceResponse[] = [];
 
-    for (const exerciseName of filteredExerciseNames) {
-      if (!exerciseGroups[exerciseName]) continue;
+    // For each exercise name, process its performance data
+    for (const exerciseName of Array.from(allExerciseNames)) {
+      // Skip if this exercise was filtered out
+      if (params.exerciseName && params.exerciseName !== exerciseName) continue;
 
-      const exerciseInstances = exerciseGroups[exerciseName];
+      // Get all instances of this exercise across activities
+      const exerciseInstances: {
+        activity: Activity;
+        exercise: Exercise;
+        activityExerciseIndex: number;
+      }[] = [];
+
+      filteredActivities.forEach((activity) => {
+        const index = activity.exercises.findIndex(
+          (ex) => ex.name === exerciseName,
+        );
+        if (index !== -1) {
+          exerciseInstances.push({
+            activity,
+            exercise: activity.exercises[index],
+            activityExerciseIndex: index,
+          });
+        }
+      });
+
+      // Skip if no instances found (shouldn't happen but just in case)
+      if (exerciseInstances.length === 0) continue;
+
+      // Process performance data for this exercise
       const performanceData: PerformancePoint[] = [];
+
+      // Create a sorted list of all activity dates
+      const activityDates = filteredActivities
+        .map((a) => a.startDate)
+        .sort((a, b) => a.getTime() - b.getTime());
+
+      // Get the earliest date (for baseline calculation)
+      const earliestDate = activityDates[0];
+      // end
 
       for (const {
         activity,
@@ -253,8 +268,8 @@ export class ActivitiesService {
           volume: totalVolume,
           durationEfficiency,
           fatigueLevel: fatigueFactor,
-          exerciseName: exercise.name,
-          rawPerformance, // Store non-normalized value
+          exerciseName,
+          rawPerformance,
         });
       }
 
@@ -263,72 +278,76 @@ export class ActivitiesService {
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       );
 
-      const result: PerformanceResponse[] = [];
-
-      for (const exerciseName of filteredExerciseNames) {
-        if (!exerciseGroups[exerciseName]) continue;
-
-        const exerciseInstances = exerciseGroups[exerciseName];
-        const performanceData: PerformancePoint[] = [];
-
-        // ... existing code to populate performanceData
-
-        // Sort by date
-        performanceData.sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-        );
-
-        // Find the most frequent activity name for this exercise
-        const activityCounts: Record<string, number> = {};
-        exerciseInstances.forEach(({ activity }) => {
-          activityCounts[activity.name] =
-            (activityCounts[activity.name] || 0) + 1;
-        });
-
-        const primaryActivityName = Object.entries(activityCounts).sort(
-          (a, b) => b[1] - a[1],
-        )[0][0];
-
-        // Store baseline performance for percentage calculations
-        const baselinePerformance =
-          performanceData.length > 0
-            ? performanceData[0].performance
-            : undefined;
-
-        result.push({
-          activityName: primaryActivityName,
-          exerciseName,
-          performanceData,
-          baselinePerformance,
-        });
-      }
-
-      // Ensure that all response objects have data for the same dates
-      // Find all unique dates across all exercises
-      const allDates = new Set<string>();
-      result.forEach((exercise) => {
-        exercise.performanceData.forEach((point) => {
-          allDates.add(point.date);
-        });
+      // Find primary activity name
+      const activityCounts: Record<string, number> = {};
+      exerciseInstances.forEach(({ activity }) => {
+        activityCounts[activity.name] =
+          (activityCounts[activity.name] || 0) + 1;
       });
 
-      // Make sure all exercises have entries for all dates (this helps with chart rendering)
-      if (allDates.size > 1) {
-        const sortedDates = Array.from(allDates).sort();
+      const primaryActivityName = Object.entries(activityCounts).sort(
+        (a, b) => b[1] - a[1],
+      )[0][0];
 
-        result.forEach((exerciseResult) => {
-          const existingDates = new Set(
-            exerciseResult.performanceData.map((p) => p.date),
-          );
+      // Calculate baseline - all data will be relative to the first exercise data point
+      const baselinePerformance =
+        performanceData.length > 0 ? performanceData[0].performance : undefined;
 
-          // For debugging: Log the dates for each exercise
-          console.log(
-            `Exercise ${exerciseResult.exerciseName} has data for dates: ${Array.from(existingDates).join(', ')}`,
-          );
-        });
-      }
-
-      return result;
+      // Add to result
+      result.push({
+        activityName: primaryActivityName,
+        exerciseName,
+        performanceData,
+        baselinePerformance,
+      });
     }
+
+    // Ensure all exercises have data points for all activity dates
+    const activityDates = filteredActivities
+      .map((a) => a.startDate.toISOString())
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+    // For data visualization consistency, ensure each exercise has a data point for the earliest date
+    // This solves the "all lines start at 0%" problem
+    if (activityDates.length > 1) {
+      const earliestDate = activityDates[0];
+
+      // For each exercise result
+      result.forEach((exerciseResult) => {
+        // Check if this exercise has data for the earliest date
+        const hasEarliestData = exerciseResult.performanceData.some(
+          (point) => point.date === earliestDate,
+        );
+
+        // If it doesn't, create a synthetic "baseline" data point
+        if (!hasEarliestData && exerciseResult.performanceData.length > 0) {
+          // Use the first available performance as the reference for the baseline
+          const referencePerformance =
+            exerciseResult.performanceData[0].performance;
+          exerciseResult.baselinePerformance = referencePerformance;
+
+          // Create the synthetic baseline data point
+          const baselinePoint: PerformancePoint = {
+            date: earliestDate,
+            performance: referencePerformance, // Same performance as first real data point
+            volume: 0, // Placeholder values for other metrics
+            durationEfficiency: 0,
+            fatigueLevel: 0,
+            exerciseName: exerciseResult.exerciseName,
+            rawPerformance: referencePerformance,
+          };
+
+          // Add this point to the beginning of the performance data array
+          exerciseResult.performanceData.unshift(baselinePoint);
+
+          // Resort the array to ensure correct order
+          exerciseResult.performanceData.sort(
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+          );
+        }
+      });
+    }
+
+    return result;
   }
 }

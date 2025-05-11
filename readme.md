@@ -7,6 +7,9 @@ docker network create trackmyfit_network
 Database:
 docker compose -f docker-compose.yml -f docker-compose.db.yml up
 
+Utils:
+docker compose -f docker-compose.yml -f docker-compose.utils.yml up
+
 Frontend:
 docker compose -f docker-compose.yml -f docker-compose.frontend.yml up
 

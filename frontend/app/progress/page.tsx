@@ -208,23 +208,39 @@ const ProgressPage = () => {
       });
     });
 
-    // Sort dates
+    // Sort dates chronologically
     const sortedDates = Array.from(allDates).sort(
       (a, b) => new Date(a).getTime() - new Date(b).getTime()
     );
 
+    // Get the earliest date - this will be our common baseline date
+    const earliestDate = sortedDates[0];
+
     // Transform data for chart usage, including percentage calculations
     const performances: ExercisePerformance[] = data.map((item) => {
+      // Get the baseline performance value
       const baseline = item.baselinePerformance || 0;
 
-      // Create a map of all dates to their performance data
+      // Create a map of dates to performance data
       const dateMap: Record<
         string,
-        { performance: number; percentageChange: number }
+        {
+          performance: number | null;
+          percentageChange: number | null;
+        }
       > = {};
 
-      // Initialize with actual data points
+      // Initialize all dates with null values
+      sortedDates.forEach((date) => {
+        dateMap[date] = {
+          performance: null,
+          percentageChange: null,
+        };
+      });
+
+      // Fill in actual data points
       item.performanceData.forEach((point) => {
+        // Calculate percentage change from baseline
         const percentageChange =
           baseline > 0 ? ((point.performance - baseline) / baseline) * 100 : 0;
 
@@ -234,22 +250,17 @@ const ProgressPage = () => {
         };
       });
 
-      // Generate performance data array with all dates
-      const processedData = sortedDates.map((date) => {
-        if (dateMap[date]) {
-          return {
-            date,
-            ...dateMap[date],
-          };
-        }
+      // Ensure the earliest date has a valid percentage change (0%)
+      if (dateMap[earliestDate]?.performance) {
+        dateMap[earliestDate].percentageChange = 0;
+      }
 
-        // For dates without data, return null values to maintain continuity
-        return {
-          date,
-          performance: null,
-          percentageChange: null,
-        };
-      });
+      // Create processed data array with all dates
+      const processedData = sortedDates.map((date) => ({
+        date,
+        performance: dateMap[date]?.performance ?? null,
+        percentageChange: dateMap[date]?.percentageChange ?? null,
+      }));
 
       return {
         name: item.exerciseName,
@@ -289,48 +300,35 @@ const ProgressPage = () => {
   const getAllPerformanceData = () => {
     if (!exercisePerformances.length) return [];
 
-    // First, get all unique dates across all exercises
+    // Find all unique dates across all exercises
     const allDates = new Set<string>();
     exercisePerformances.forEach((exercise) => {
       exercise.data.forEach((point) => {
-        allDates.add(point.date);
+        if (point.date) allDates.add(point.date);
       });
     });
 
     // Sort dates chronologically
-    const sortedDates = Array.from(allDates).sort((a, b) => {
-      return new Date(a).getTime() - new Date(b).getTime();
-    });
+    const sortedDates = Array.from(allDates).sort(
+      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+    );
 
-    // Create a map of all dates and their performances by exercise
-    const dateMap: Record<string, Record<string, number | null>> = {};
-
-    // Initialize all dates for all exercises (this ensures no missing data points)
-    sortedDates.forEach((date) => {
-      dateMap[date] = {};
-      exercisePerformances.forEach((exercise) => {
-        // Set initial null value for all exercise/date combinations
-        dateMap[date][exercise.name] = null;
-      });
-    });
-
-    // Fill in actual data where it exists
-    exercisePerformances.forEach((exercise) => {
-      exercise.data.forEach((point) => {
-        // Store either percentage or absolute value based on current view setting
-        dateMap[point.date][exercise.name] = showPercentage
-          ? point.percentageChange
-          : point.performance;
-      });
-    });
-
-    // Convert the map to an array for recharts
+    // Create data points for all dates
     return sortedDates.map((date) => {
-      const entry: any = { date };
+      const dataPoint: any = { date };
+
+      // Add data for each exercise
       exercisePerformances.forEach((exercise) => {
-        entry[exercise.name] = dateMap[date][exercise.name];
+        // Find the data point for this date
+        const point = exercise.data.find((p) => p.date === date);
+
+        // Use the appropriate value based on display mode
+        dataPoint[exercise.name] = showPercentage
+          ? point?.percentageChange
+          : point?.performance;
       });
-      return entry;
+
+      return dataPoint;
     });
   };
 
@@ -685,8 +683,11 @@ const ProgressPage = () => {
                         dataKey="date"
                         stroke={darkMode ? '#aaa' : '#666'}
                         tickFormatter={(value) => {
+                          // Convert to Date object if it's a string
+                          const date =
+                            typeof value === 'string' ? new Date(value) : value;
                           // Format date to shorter version for x-axis
-                          return new Date(value).toLocaleDateString('default', {
+                          return date.toLocaleDateString('default', {
                             month: 'numeric',
                             day: 'numeric',
                           });
@@ -725,7 +726,7 @@ const ProgressPage = () => {
                           stroke={getColorForIndex(index)}
                           activeDot={{ r: 6 }}
                           strokeWidth={2.5}
-                          connectNulls={false} // Changed to false to ensure line continuity
+                          connectNulls={false} // This is critical for connecting across null values
                           dot={{
                             strokeWidth: 2,
                             r: 5,
