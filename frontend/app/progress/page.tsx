@@ -57,8 +57,8 @@ interface ExercisePerformance {
   name: string;
   data: {
     date: string;
-    performance: number;
-    percentageChange: number;
+    performance: number | null;
+    percentageChange: number | null;
   }[];
 }
 
@@ -200,25 +200,60 @@ const ProgressPage = () => {
   ]);
 
   const processPerformanceData = (data: PerformanceData[]) => {
+    // Get all unique dates across all exercises
+    const allDates = new Set<string>();
+    data.forEach((item) => {
+      item.performanceData.forEach((point) => {
+        allDates.add(point.date);
+      });
+    });
+
+    // Sort dates
+    const sortedDates = Array.from(allDates).sort(
+      (a, b) => new Date(a).getTime() - new Date(b).getTime()
+    );
+
     // Transform data for chart usage, including percentage calculations
     const performances: ExercisePerformance[] = data.map((item) => {
       const baseline = item.baselinePerformance || 0;
 
+      // Create a map of all dates to their performance data
+      const dateMap: Record<
+        string,
+        { performance: number; percentageChange: number }
+      > = {};
+
+      // Initialize with actual data points
+      item.performanceData.forEach((point) => {
+        const percentageChange =
+          baseline > 0 ? ((point.performance - baseline) / baseline) * 100 : 0;
+
+        dateMap[point.date] = {
+          performance: point.performance,
+          percentageChange: Number(percentageChange.toFixed(1)),
+        };
+      });
+
+      // Generate performance data array with all dates
+      const processedData = sortedDates.map((date) => {
+        if (dateMap[date]) {
+          return {
+            date,
+            ...dateMap[date],
+          };
+        }
+
+        // For dates without data, return null values to maintain continuity
+        return {
+          date,
+          performance: null,
+          percentageChange: null,
+        };
+      });
+
       return {
         name: item.exerciseName,
-        data: item.performanceData.map((point) => {
-          // Calculate percentage change from baseline
-          const percentageChange =
-            baseline > 0
-              ? ((point.performance - baseline) / baseline) * 100
-              : 0;
-
-          return {
-            date: new Date(point.date).toLocaleDateString(),
-            performance: point.performance,
-            percentageChange: Number(percentageChange.toFixed(1)),
-          };
-        }),
+        data: processedData,
       };
     });
 
@@ -254,15 +289,34 @@ const ProgressPage = () => {
   const getAllPerformanceData = () => {
     if (!exercisePerformances.length) return [];
 
-    // Create a map of all dates and their performances by exercise
-    const dateMap: Record<string, Record<string, number>> = {};
-
+    // First, get all unique dates across all exercises
+    const allDates = new Set<string>();
     exercisePerformances.forEach((exercise) => {
       exercise.data.forEach((point) => {
-        if (!dateMap[point.date]) {
-          dateMap[point.date] = {};
-        }
+        allDates.add(point.date);
+      });
+    });
 
+    // Sort dates chronologically
+    const sortedDates = Array.from(allDates).sort((a, b) => {
+      return new Date(a).getTime() - new Date(b).getTime();
+    });
+
+    // Create a map of all dates and their performances by exercise
+    const dateMap: Record<string, Record<string, number | null>> = {};
+
+    // Initialize all dates for all exercises (this ensures no missing data points)
+    sortedDates.forEach((date) => {
+      dateMap[date] = {};
+      exercisePerformances.forEach((exercise) => {
+        // Set initial null value for all exercise/date combinations
+        dateMap[date][exercise.name] = null;
+      });
+    });
+
+    // Fill in actual data where it exists
+    exercisePerformances.forEach((exercise) => {
+      exercise.data.forEach((point) => {
         // Store either percentage or absolute value based on current view setting
         dateMap[point.date][exercise.name] = showPercentage
           ? point.percentageChange
@@ -271,15 +325,13 @@ const ProgressPage = () => {
     });
 
     // Convert the map to an array for recharts
-    return Object.keys(dateMap)
-      .map((date) => {
-        const entry: any = { date };
-        exercisePerformances.forEach((exercise) => {
-          entry[exercise.name] = dateMap[date][exercise.name] || null;
-        });
-        return entry;
-      })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return sortedDates.map((date) => {
+      const entry: any = { date };
+      exercisePerformances.forEach((exercise) => {
+        entry[exercise.name] = dateMap[date][exercise.name];
+      });
+      return entry;
+    });
   };
 
   // Handle weight input changes with normalization
@@ -632,6 +684,13 @@ const ProgressPage = () => {
                       <XAxis
                         dataKey="date"
                         stroke={darkMode ? '#aaa' : '#666'}
+                        tickFormatter={(value) => {
+                          // Format date to shorter version for x-axis
+                          return new Date(value).toLocaleDateString('default', {
+                            month: 'numeric',
+                            day: 'numeric',
+                          });
+                        }}
                       />
                       <YAxis
                         stroke={darkMode ? '#aaa' : '#666'}
@@ -654,6 +713,7 @@ const ProgressPage = () => {
                             isPercentage={showPercentage}
                           />
                         }
+                        isAnimationActive={true}
                       />
                       <Legend />
 
@@ -663,9 +723,18 @@ const ProgressPage = () => {
                           type="monotone"
                           dataKey={exercise.name}
                           stroke={getColorForIndex(index)}
-                          activeDot={{ r: 8 }}
-                          strokeWidth={2}
-                          connectNulls={true}
+                          activeDot={{ r: 6 }}
+                          strokeWidth={2.5}
+                          connectNulls={false} // Changed to false to ensure line continuity
+                          dot={{
+                            strokeWidth: 2,
+                            r: 5,
+                            fill: darkMode ? '#111827' : '#fff',
+                            stroke: getColorForIndex(index),
+                          }}
+                          isAnimationActive={true}
+                          animationDuration={1000}
+                          animationEasing="ease-in-out"
                         />
                       ))}
                     </LineChart>
@@ -738,28 +807,28 @@ const ProgressPage = () => {
                               <span>
                                 {exercise.data[
                                   exercise.data.length - 1
-                                ].performance.toFixed(1)}
+                                ].performance?.toFixed(1)}
                               </span>
                             )}
                             {showPercentage && (
                               <span
                                 className={`${
                                   exercise.data[exercise.data.length - 1]
-                                    .percentageChange > 0
+                                    .percentageChange! > 0
                                     ? 'text-green-500'
                                     : exercise.data[exercise.data.length - 1]
-                                        .percentageChange < 0
+                                        .percentageChange! < 0
                                     ? 'text-red-500'
                                     : ''
                                 }`}
                               >
                                 {exercise.data[exercise.data.length - 1]
-                                  .percentageChange > 0
+                                  .percentageChange! > 0
                                   ? '+'
                                   : ''}
                                 {exercise.data[
                                   exercise.data.length - 1
-                                ].percentageChange.toFixed(1)}
+                                ].percentageChange?.toFixed(1)}
                                 %
                               </span>
                             )}
@@ -786,19 +855,19 @@ const ProgressPage = () => {
                               <div className="font-mono">
                                 {showPercentage
                                   ? '0.0%'
-                                  : exercise.data[0].performance.toFixed(1)}
+                                  : exercise.data[0].performance?.toFixed(1)}
                               </div>
                             </div>
 
                             <div className="flex items-center">
                               {exercise.data[exercise.data.length - 1]
-                                .percentageChange > 0 ? (
+                                .percentageChange! > 0 ? (
                                 <TrendingUp
                                   size={24}
                                   className="text-green-500 mr-1"
                                 />
                               ) : exercise.data[exercise.data.length - 1]
-                                  .percentageChange < 0 ? (
+                                  .percentageChange! < 0 ? (
                                 <TrendingUp
                                   size={24}
                                   className="text-red-500 mr-1 transform rotate-180"
@@ -820,15 +889,15 @@ const ProgressPage = () => {
                                 {showPercentage
                                   ? `${
                                       exercise.data[exercise.data.length - 1]
-                                        .percentageChange > 0
+                                        .percentageChange! > 0
                                         ? '+'
                                         : ''
                                     }${exercise.data[
                                       exercise.data.length - 1
-                                    ].percentageChange.toFixed(1)}%`
+                                    ].percentageChange?.toFixed(1)}%`
                                   : exercise.data[
                                       exercise.data.length - 1
-                                    ].performance.toFixed(1)}
+                                    ].performance?.toFixed(1)}
                               </div>
                             </div>
                           </div>
@@ -848,22 +917,22 @@ const ProgressPage = () => {
                                   Math.max(
                                     0,
                                     exercise.data[exercise.data.length - 1]
-                                      .percentageChange > 0
+                                      .percentageChange! > 0
                                       ? Math.min(
                                           100,
                                           exercise.data[
                                             exercise.data.length - 1
-                                          ].percentageChange + 50
+                                          ].percentageChange! + 50
                                         )
                                       : 50
                                   )
                                 )}%`,
                                 backgroundColor:
                                   exercise.data[exercise.data.length - 1]
-                                    .percentageChange > 0
+                                    .percentageChange! > 0
                                     ? '#22c55e' // Green for improvement
                                     : exercise.data[exercise.data.length - 1]
-                                        .percentageChange < 0
+                                        .percentageChange! < 0
                                     ? '#ef4444' // Red for decline
                                     : '#f59e0b', // Yellow for no change
                               }}

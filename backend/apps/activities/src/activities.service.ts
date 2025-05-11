@@ -263,29 +263,72 @@ export class ActivitiesService {
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       );
 
-      // Find the most frequent activity name for this exercise
-      const activityCounts: Record<string, number> = {};
-      exerciseInstances.forEach(({ activity }) => {
-        activityCounts[activity.name] =
-          (activityCounts[activity.name] || 0) + 1;
+      const result: PerformanceResponse[] = [];
+
+      for (const exerciseName of filteredExerciseNames) {
+        if (!exerciseGroups[exerciseName]) continue;
+
+        const exerciseInstances = exerciseGroups[exerciseName];
+        const performanceData: PerformancePoint[] = [];
+
+        // ... existing code to populate performanceData
+
+        // Sort by date
+        performanceData.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+        );
+
+        // Find the most frequent activity name for this exercise
+        const activityCounts: Record<string, number> = {};
+        exerciseInstances.forEach(({ activity }) => {
+          activityCounts[activity.name] =
+            (activityCounts[activity.name] || 0) + 1;
+        });
+
+        const primaryActivityName = Object.entries(activityCounts).sort(
+          (a, b) => b[1] - a[1],
+        )[0][0];
+
+        // Store baseline performance for percentage calculations
+        const baselinePerformance =
+          performanceData.length > 0
+            ? performanceData[0].performance
+            : undefined;
+
+        result.push({
+          activityName: primaryActivityName,
+          exerciseName,
+          performanceData,
+          baselinePerformance,
+        });
+      }
+
+      // Ensure that all response objects have data for the same dates
+      // Find all unique dates across all exercises
+      const allDates = new Set<string>();
+      result.forEach((exercise) => {
+        exercise.performanceData.forEach((point) => {
+          allDates.add(point.date);
+        });
       });
 
-      const primaryActivityName = Object.entries(activityCounts).sort(
-        (a, b) => b[1] - a[1],
-      )[0][0];
+      // Make sure all exercises have entries for all dates (this helps with chart rendering)
+      if (allDates.size > 1) {
+        const sortedDates = Array.from(allDates).sort();
 
-      // Store baseline performance for percentage calculations
-      const baselinePerformance =
-        performanceData.length > 0 ? performanceData[0].performance : undefined;
+        result.forEach((exerciseResult) => {
+          const existingDates = new Set(
+            exerciseResult.performanceData.map((p) => p.date),
+          );
 
-      result.push({
-        activityName: primaryActivityName,
-        exerciseName,
-        performanceData,
-        baselinePerformance,
-      });
+          // For debugging: Log the dates for each exercise
+          console.log(
+            `Exercise ${exerciseResult.exerciseName} has data for dates: ${Array.from(existingDates).join(', ')}`,
+          );
+        });
+      }
+
+      return result;
     }
-
-    return result;
   }
 }
