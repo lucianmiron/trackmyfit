@@ -213,12 +213,9 @@ const ProgressPage = () => {
       (a, b) => new Date(a).getTime() - new Date(b).getTime()
     );
 
-    // Get the earliest date - this will be our common baseline date
-    const earliestDate = sortedDates[0];
-
     // Transform data for chart usage, including percentage calculations
     const performances: ExercisePerformance[] = data.map((item) => {
-      // Get the baseline performance value
+      // Get the baseline performance value - first value chronologically
       const baseline = item.baselinePerformance || 0;
 
       // Create a map of dates to performance data
@@ -249,11 +246,6 @@ const ProgressPage = () => {
           percentageChange: Number(percentageChange.toFixed(1)),
         };
       });
-
-      // Ensure the earliest date has a valid percentage change (0%)
-      if (dateMap[earliestDate]?.performance) {
-        dateMap[earliestDate].percentageChange = 0;
-      }
 
       // Create processed data array with all dates
       const processedData = sortedDates.map((date) => ({
@@ -323,9 +315,14 @@ const ProgressPage = () => {
         const point = exercise.data.find((p) => p.date === date);
 
         // Use the appropriate value based on display mode
-        dataPoint[exercise.name] = showPercentage
-          ? point?.percentageChange
-          : point?.performance;
+        if (point) {
+          dataPoint[exercise.name] = showPercentage
+            ? point.percentageChange
+            : point.performance;
+        } else {
+          // If no data point exists for this date, use null to create a gap in the chart
+          dataPoint[exercise.name] = null;
+        }
       });
 
       return dataPoint;
@@ -726,7 +723,7 @@ const ProgressPage = () => {
                           stroke={getColorForIndex(index)}
                           activeDot={{ r: 6 }}
                           strokeWidth={2.5}
-                          connectNulls={false} // This is critical for connecting across null values
+                          connectNulls={true} // Change to true to connect across null values
                           dot={{
                             strokeWidth: 2,
                             r: 5,

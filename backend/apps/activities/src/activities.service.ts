@@ -307,46 +307,60 @@ export class ActivitiesService {
       .map((a) => a.startDate.toISOString())
       .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
 
-    // For data visualization consistency, ensure each exercise has a data point for the earliest date
-    // This solves the "all lines start at 0%" problem
-    if (activityDates.length > 1) {
-      const earliestDate = activityDates[0];
+    // For data visualization consistency, ensure each exercise has a data point for all dates
+    result.forEach((exerciseResult) => {
+      // Create a map of existing dates
+      const existingDates = new Set(
+        exerciseResult.performanceData.map((point) => point.date),
+      );
 
-      // For each exercise result
-      result.forEach((exerciseResult) => {
-        // Check if this exercise has data for the earliest date
-        const hasEarliestData = exerciseResult.performanceData.some(
-          (point) => point.date === earliestDate,
+      // Ensure baseline performance is properly set
+      if (exerciseResult.performanceData.length > 0) {
+        // Sort performance data by date to ensure the first entry is the earliest
+        exerciseResult.performanceData.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
         );
+        exerciseResult.baselinePerformance =
+          exerciseResult.performanceData[0].performance;
+      }
 
-        // If it doesn't, create a synthetic "baseline" data point
-        if (!hasEarliestData && exerciseResult.performanceData.length > 0) {
-          // Use the first available performance as the reference for the baseline
-          const referencePerformance =
-            exerciseResult.performanceData[0].performance;
-          exerciseResult.baselinePerformance = referencePerformance;
+      // For each activity date, ensure there is a data point
+      activityDates.forEach((date) => {
+        if (!existingDates.has(date)) {
+          // Find the closest previous date with data
+          const previousDates = exerciseResult.performanceData
+            .filter(
+              (p) => new Date(p.date).getTime() <= new Date(date).getTime(),
+            )
+            .sort(
+              (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+            );
 
-          // Create the synthetic baseline data point
-          const baselinePoint: PerformancePoint = {
-            date: earliestDate,
-            performance: referencePerformance, // Same performance as first real data point
-            volume: 0, // Placeholder values for other metrics
-            durationEfficiency: 0,
-            fatigueLevel: 0,
-            exerciseName: exerciseResult.exerciseName,
-            rawPerformance: referencePerformance,
-          };
+          // If we have a previous date, use its data as reference
+          if (previousDates.length > 0) {
+            const reference = previousDates[0];
 
-          // Add this point to the beginning of the performance data array
-          exerciseResult.performanceData.unshift(baselinePoint);
+            // Create a synthetic data point
+            const syntheticPoint: PerformancePoint = {
+              date: date,
+              performance: reference.performance,
+              volume: reference.volume,
+              durationEfficiency: reference.durationEfficiency,
+              fatigueLevel: reference.fatigueLevel,
+              exerciseName: exerciseResult.exerciseName,
+              rawPerformance: reference.rawPerformance,
+            };
 
-          // Resort the array to ensure correct order
-          exerciseResult.performanceData.sort(
-            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-          );
+            exerciseResult.performanceData.push(syntheticPoint);
+          }
         }
       });
-    }
+
+      // Sort the performance data by date
+      exerciseResult.performanceData.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+    });
 
     return result;
   }
