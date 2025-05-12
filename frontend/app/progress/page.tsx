@@ -30,6 +30,10 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
+import PerformanceChart, {
+  getColorForIndex,
+} from '../components/PerformanceChart';
+
 // Types
 interface PerformancePoint {
   date: string;
@@ -61,45 +65,6 @@ interface ExercisePerformance {
     percentageChange: number | null;
   }[];
 }
-
-// Custom tooltip component for charts
-const CustomTooltip = ({
-  active,
-  payload,
-  label,
-  darkMode,
-  isPercentage,
-}: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div
-        className={`p-3 border rounded-md shadow-sm ${
-          darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-        }`}
-      >
-        <p className="font-medium mb-1">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <div
-            key={`item-${index}`}
-            className="flex items-center gap-2 text-sm"
-          >
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: entry.color }}
-            ></div>
-            <span>{entry.name}: </span>
-            <span className="font-mono">
-              {isPercentage
-                ? `${entry.value >= 0 ? '+' : ''}${entry.value.toFixed(1)}%`
-                : entry.value.toFixed(1)}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
 
 const ProgressPage = () => {
   const { darkMode } = useTheme();
@@ -269,63 +234,6 @@ const ProgressPage = () => {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-    });
-  };
-
-  const getColorForIndex = (index: number) => {
-    const colors = [
-      '#8884d8',
-      '#82ca9d',
-      '#ffc658',
-      '#ff7300',
-      '#0088fe',
-      '#00C49F',
-      '#FFBB28',
-      '#FF8042',
-      '#a4de6c',
-      '#d0ed57',
-    ];
-    return colors[index % colors.length];
-  };
-
-  // Combine all dates from all exercises for the chart
-  const getAllPerformanceData = () => {
-    if (!exercisePerformances.length) return [];
-
-    // Find all unique dates across all exercises
-    const allDates = new Set<string>();
-    exercisePerformances.forEach((exercise) => {
-      exercise.data.forEach((point) => {
-        if (point.date) allDates.add(point.date);
-      });
-    });
-
-    // Sort dates chronologically
-    const sortedDates = Array.from(allDates).sort(
-      (a, b) => new Date(a).getTime() - new Date(b).getTime()
-    );
-
-    // Create data points for all dates
-    return sortedDates.map((date) => {
-      const dataPoint: any = { date };
-
-      // Add data for each exercise
-      exercisePerformances.forEach((exercise) => {
-        // Find the data point for this date
-        const point = exercise.data.find((p) => p.date === date);
-
-        // Use the appropriate value based on display mode
-        if (point) {
-          dataPoint[exercise.name] = showPercentage
-            ? point.percentageChange
-            : point.performance;
-        } else {
-          // If no data point exists for this date, use null to create a gap in the chart
-          dataPoint[exercise.name] = null;
-        }
-      });
-
-      return dataPoint;
     });
   };
 
@@ -665,99 +573,11 @@ const ProgressPage = () => {
                 </span>
               </h2>
 
-              {exercisePerformances.length > 0 ? (
-                <div className="h-96">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={getAllPerformanceData()}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke={darkMode ? '#444' : '#eee'}
-                      />
-                      <XAxis
-                        dataKey="date"
-                        stroke={darkMode ? '#aaa' : '#666'}
-                        tickFormatter={(value) => {
-                          // Convert to Date object if it's a string
-                          const date =
-                            typeof value === 'string' ? new Date(value) : value;
-                          // Format date to shorter version for x-axis
-                          return date.toLocaleDateString('default', {
-                            month: 'numeric',
-                            day: 'numeric',
-                          });
-                        }}
-                      />
-                      <YAxis
-                        stroke={darkMode ? '#aaa' : '#666'}
-                        label={{
-                          value: showPercentage
-                            ? 'Change (%)'
-                            : 'Performance Score',
-                          angle: -90,
-                          position: 'insideLeft',
-                          style: {
-                            textAnchor: 'middle',
-                            fill: darkMode ? '#aaa' : '#666',
-                          },
-                        }}
-                      />
-                      <Tooltip
-                        content={
-                          <CustomTooltip
-                            darkMode={darkMode}
-                            isPercentage={showPercentage}
-                          />
-                        }
-                        isAnimationActive={true}
-                      />
-                      <Legend />
-
-                      {exercisePerformances.map((exercise, index) => (
-                        <Line
-                          key={exercise.name}
-                          type="monotone"
-                          dataKey={exercise.name}
-                          stroke={getColorForIndex(index)}
-                          activeDot={{ r: 6 }}
-                          strokeWidth={2.5}
-                          connectNulls={true} // Change to true to connect across null values
-                          dot={{
-                            strokeWidth: 2,
-                            r: 5,
-                            fill: darkMode ? '#111827' : '#fff',
-                            stroke: getColorForIndex(index),
-                          }}
-                          isAnimationActive={true}
-                          animationDuration={1000}
-                          animationEasing="ease-in-out"
-                        />
-                      ))}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <BarChart2
-                    size={48}
-                    className={`mb-4 ${
-                      darkMode ? 'text-gray-600' : 'text-gray-300'
-                    }`}
-                  />
-                  <p className={darkMode ? 'text-gray-400' : 'text-gray-500'}>
-                    No performance data available for this activity.
-                  </p>
-                  <p
-                    className={`text-sm ${
-                      darkMode ? 'text-gray-500' : 'text-gray-400'
-                    }`}
-                  >
-                    Try selecting a different activity or record more workouts.
-                  </p>
-                </div>
-              )}
+              <PerformanceChart
+                exercisePerformances={exercisePerformances}
+                darkMode={darkMode}
+                showPercentage={showPercentage}
+              />
             </div>
 
             {/* Exercise Cards */}
