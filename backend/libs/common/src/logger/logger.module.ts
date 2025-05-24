@@ -13,6 +13,7 @@ import { LoggerModule as LoggerModulePino } from 'nestjs-pino';
             translateTime: 'yyyy-dd-mm, h:MM:ss TT',
           },
         },
+        level: 'debug',
       },
     }),
   ],
