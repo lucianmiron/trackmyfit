@@ -48,18 +48,35 @@ helm install trackmyfit .
 
 docker pull europe-central2-docker.pkg.dev/trackmyfit-459021/activities/production
 
-kubectl create secret docker-registry gcr-json-key --docker-server=europe-central2-docker.pkg.dev --docker-username=\_json_key --docker-password="$(cat ./trackmyfit-459021-9cbc3c37ad8c.json)" --docker-email=zisushd@gmail.com
+kubectl create secret docker-registry gcr-json-key --docker-server=europe-central2-docker.pkg.dev --docker-username=\_json_key --docker-password="$(cat ./<>)" --docker-email=<>
 
-kubectl create secret docker-registry gcr-json-key --docker-server=europe-central2-docker.pkg.dev --docker-username=\_json_key --docker-password="$(type trackmyfit-459021-102d199cafe3.json)" --docker-email=zisushd@gmail.com
+kubectl create secret docker-registry gcr-json-key --docker-server=europe-central2-docker.pkg.dev --docker-username=\_json_key --docker-password="$(type <>)" --docker-email=<>
 
 kubectl describe serviceaccount default
 kubectl patch serviceaccount default -p "{\"imagePullSecrets\": [{\"name\": \"gcr-json-key\"}]}"
+kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "gcr-json-key"}]}'
 kubectl rollout restart deployment activities
 
 (utility)
 kubectl describe po <pod>
 kubectl logs <pod>
 
+helm upgrade trackmyfit . -> will add new deployments or env variables
+
+(open 2 ports on this service)
+kubectl create service clusterip auth --tcp=3002,3003 --dry-run=client -o yaml > service.yaml
+
+### Dealing with env variables
+kubectl create secret generic postgres --from-literal=<key>(e.g. host)=<value>(e.g. blabla)
+
+kubectl get secret postgres-password -o jsonpath='{.data.password}' | base64 -d
+
+### Creating the services
+
+kubectl create service clusterip auth --tcp=3002 --dry-run=client -o yaml > service.yaml
+delete status and creationTimestamp
+
+kubectl create service nodeport activities --tcp=3001 --dry-run=client -o yaml > service.yaml
 # Google cloud services
 
 Artifacts Registry

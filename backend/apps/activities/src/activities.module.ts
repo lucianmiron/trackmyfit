@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ActivitiesController } from './activities.controller';
 import { ActivitiesService } from './activities.service';
-import { AUTH_SERVICE, DatabaseModule, LoggerModule } from '@app/common';
+import { AUTH_SERVICE, DatabaseModule, HealthModule, LoggerModule } from '@app/common';
 import { Activity } from './entities/activity.entity';
 import { Exercise } from './entities/exercise.entity';
 import { ExerciseSet } from './entities/exercise-set.entity';
@@ -28,6 +28,7 @@ import { ConfigService } from '@nestjs/config';
         inject: [ConfigService],
       },
     ]),
+    HealthModule,
   ],
   controllers: [ActivitiesController],
   providers: [ActivitiesService],
