@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: trackmyfit
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /activities/*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: activities 
+                port:
+                  number: 3001
+          - path: /auth/*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: auth 
+                port:
+                  number: 3002

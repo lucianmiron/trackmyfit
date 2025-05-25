@@ -10,11 +10,8 @@ RUN npm install -g pnpm
 RUN pnpm install
 
 # Set environment variables for build
-ARG NEXT_PUBLIC_API_ACTIVITIES_URL
-ENV NEXT_PUBLIC_API_ACTIVITIES_URL=$NEXT_PUBLIC_API_ACTIVITIES_URL
-
-ARG NEXT_PUBLIC_API_AUTH_URL
-ENV NEXT_PUBLIC_API_AUTH_URL=$NEXT_PUBLIC_API_AUTH_URL
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 RUN pnpm run build
 
@@ -33,7 +30,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 
 # Expose the port the app will run on
-EXPOSE 3001
+EXPOSE 3000
 
 # Start the application
 CMD ["pnpm", "dev"]
