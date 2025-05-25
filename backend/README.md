@@ -77,6 +77,19 @@ kubectl create service clusterip auth --tcp=3002 --dry-run=client -o yaml > serv
 delete status and creationTimestamp
 
 kubectl create service nodeport activities --tcp=3001 --dry-run=client -o yaml > service.yaml
+
+### Kubernetes Cloud Engine
+
+kubectl config get-contexts
+kubectl config use-context docker-desktop
+
+kubectl get secret jwt -o yaml > jwt.yaml
+kubectl get secret postgres -o yaml > postgres.yaml
+kubectl get secret postgres-password -o yaml > postgres-password.yaml
+trackmyfit % kubectl get secret rabbitmq -o yaml > rabbitmq.yaml
+
+kubectl create -f rabbitmq.yaml
+
 # Google cloud services
 
 Artifacts Registry

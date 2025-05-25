@@ -9,5 +9,34 @@ steps:
     args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth/production', '-f', 'backend/apps/auth/Dockerfile', 'backend']
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'europe-central2-docker.pkg.dev/trackmyfit-459021/auth/production']
+  # Build Frontend
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'europe-central2-docker.pkg.dev/trackmyfit-459021/frontend/production', '-f', 'frontend/Dockerfile', '--build-arg', 'NEXT_PUBLIC_API_URL=http://34.160.170.6', 'frontend']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'europe-central2-docker.pkg.dev/trackmyfit-459021/frontend/production']
+  # Deploy with Helm
+#   - name: 'gcr.io/cloud-builders/gcloud'
+#     entrypoint: 'bash'
+#     args:
+#       - '-c'
+#       - |
+#         # Install helm
+#         curl https://get.helm.sh/helm-v3.12.0-linux-amd64.tar.gz | tar -xzO linux-amd64/helm > /usr/local/bin/helm
+#         chmod +x /usr/local/bin/helm
+        
+#         # Configure kubectl
+#         gcloud container clusters get-credentials trackmyfit-cluster --region=europe-central2
+        
+#         # Deploy/upgrade the application
+#         helm upgrade --install trackmyfit k8s/trackmyfit \
+#           --set frontend.image.tag=production \
+#           --set activities.image.tag=production \
+#           --set auth.image.tag=production \
+#           --wait --timeout=10m
+
+# substitutions:
+#   _CLUSTER_NAME: 'trackmyfit-cluster'
+#   _CLUSTER_LOCATION: 'europe-central2'
+
 options:
   logging: CLOUD_LOGGING_ONLY

@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import Header from '../components/Header';
 import { useRouter } from 'next/navigation';
-import { ACTIVITIES_API_URL, fetchFromAPI } from '../../services/api';
+import { fetchFromAPI } from '../../services/api';
 import {
   ChevronDown,
   Calendar,
@@ -19,16 +19,6 @@ import {
   HelpCircle,
   X,
 } from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
 
 import PerformanceChart, {
   getColorForIndex,
@@ -99,7 +89,7 @@ const ProgressPage = () => {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const data = await fetchFromAPI(ACTIVITIES_API_URL, 'activities');
+        const data = await fetchFromAPI('activities');
 
         // Extract unique activity names
         const uniqueActivities = Array.from(
@@ -141,7 +131,7 @@ const ProgressPage = () => {
           params.append('fatigueModel', fatigueModel);
 
           const endpoint = `activities/performance?${params.toString()}`;
-          const data = await fetchFromAPI(ACTIVITIES_API_URL, endpoint);
+          const data = await fetchFromAPI(endpoint);
           setPerformanceData(data);
 
           // Process the data for chart visualization
