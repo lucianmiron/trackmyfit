@@ -7,13 +7,13 @@ import Header from '../../components/Header';
 import Calendar from '../../components/Calendar';
 import Link from 'next/link';
 import { Plus, Clock, LineChart, TrendingUp } from 'lucide-react';
-import { ACTIVITIES_API_URL, fetchFromAPI } from '../../../services/api';
+import { activities } from '../../../services/api'; // Updated import
 import { Activity } from '../../types';
 
 export default function ActivitiesOverview() {
   const { darkMode } = useTheme();
   const router = useRouter();
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activitiesData, setActivitiesData] = useState<Activity[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedDayActivities, setSelectedDayActivities] = useState<
     Activity[]
@@ -23,9 +23,8 @@ export default function ActivitiesOverview() {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const data = await fetchFromAPI(ACTIVITIES_API_URL, 'activities');
-        console.log('Fetched activities:', data); // Debugging line
-        setActivities(data);
+        const data = await activities.getAll();
+        setActivitiesData(data);
       } catch (error) {
         console.error('Error fetching activities:', error);
       } finally {
@@ -37,8 +36,6 @@ export default function ActivitiesOverview() {
   }, []);
 
   const handleDaySelect = (date: Date, activities: Activity[]) => {
-    console.log('Selected date:', date); // Debugging line
-    console.log('Activities for selected date:', activities); // Debugging line
     setSelectedDate(date);
     setSelectedDayActivities(activities);
   };
@@ -92,10 +89,10 @@ export default function ActivitiesOverview() {
         ) : (
           <>
             <div className="mb-8">
-              <Calendar activities={activities} onDaySelect={handleDaySelect} />
+              <Calendar activities={activitiesData} onDaySelect={handleDaySelect} />
             </div>
 
-            {activities.length > 0 && (
+            {activitiesData.length > 0 && (
               <div
                 className={`my-8 p-4 rounded-lg ${
                   darkMode ? 'bg-gray-800' : 'bg-white'

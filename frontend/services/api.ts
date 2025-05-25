@@ -1,9 +1,5 @@
-// Base API service for communicating with the NestJS backend
-export const ACTIVITIES_API_URL =
-  process.env.NEXT_PUBLIC_API_ACTIVITIES_URL || 'http://localhost:3001';
-
-export const AUTH_API_URL =
-  process.env.NEXT_PUBLIC_API_AUTH_URL || 'http://localhost:3002';
+// Base API service - simplified for single backend
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
@@ -20,16 +16,14 @@ export interface PerformanceCalculationParams {
 }
 
 export async function fetchFromAPI(
-  baseUrl: string,
   endpoint: string,
   options: FetchOptions = {}
 ) {
-  const url = `${baseUrl}/${endpoint}`;
+  const url = `${BASE_URL}/${endpoint}`;
   const { skipAuth, ...fetchOptions } = options;
 
-  // Default options for all requests
   const defaultOptions: RequestInit = {
-    credentials: 'include', // This is important for cookie handling
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -53,7 +47,6 @@ export async function fetchFromAPI(
     throw new Error((await response.text()) || response.statusText);
   }
 
-  // For endpoints that don't return JSON (like logout)
   const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
     return response.json();
@@ -62,10 +55,10 @@ export async function fetchFromAPI(
   return null;
 }
 
-// Auth specific API calls
+// Auth API calls
 export const auth = {
   async login(email: string, password: string) {
-    return fetchFromAPI(AUTH_API_URL, 'login', {
+    return fetchFromAPI('auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
       skipAuth: true,
@@ -73,7 +66,7 @@ export const auth = {
   },
 
   async register(email: string, password: string) {
-    return fetchFromAPI(AUTH_API_URL, 'users', {
+    return fetchFromAPI('auth/users', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
       skipAuth: true,
@@ -81,26 +74,38 @@ export const auth = {
   },
 
   async logout() {
-    await fetchFromAPI(AUTH_API_URL, 'logout', {
+    await fetchFromAPI('auth/logout', {
       method: 'POST',
     });
     return null;
   },
 
   async getCurrentUser() {
-    return fetchFromAPI(AUTH_API_URL, 'users', {
+    return fetchFromAPI('auth/users', {
       method: 'GET',
-    }).catch(() => null); // Silently fail if not authenticated
+    }).catch(() => null);
   },
 };
 
-// Performance specific API calls
-export const performance = {
-  async getPerformanceData(params: PerformanceCalculationParams = {}) {
-    let endpoint = 'activities/performance';
-    const urlParams = new URLSearchParams();
+// Activities API calls
+export const activities = {
+  async getAll() {
+    return fetchFromAPI('activities');
+  },
 
-    // Add all parameters to the URL
+  async getById(id: string | number) {
+    return fetchFromAPI(`activities/${id}`);
+  },
+
+  async create(activity: any) {
+    return fetchFromAPI('activities', {
+      method: 'POST',
+      body: JSON.stringify(activity),
+    });
+  },
+
+  async getPerformanceData(params: PerformanceCalculationParams = {}) {
+    const urlParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         urlParams.append(key, value.toString());
@@ -108,10 +113,10 @@ export const performance = {
     });
 
     const queryString = urlParams.toString();
-    if (queryString) {
-      endpoint += `?${queryString}`;
-    }
-    console.log(`Lucian endpoint is: ${endpoint}`);
-    return fetchFromAPI(ACTIVITIES_API_URL, endpoint);
+    const endpoint = queryString ? `activities/performance?${queryString}` : 'activities/performance';
+    
+    return fetchFromAPI(endpoint);
   },
 };
+
+export { activities as performance };

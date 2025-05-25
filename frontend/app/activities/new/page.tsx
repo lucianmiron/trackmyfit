@@ -15,7 +15,7 @@ import {
 import { useTheme } from '../../context/ThemeContext';
 import Header from '../../components/Header';
 import Toast from '../../components/Toast';
-import { ACTIVITIES_API_URL, fetchFromAPI } from '../../../services/api';
+import { fetchFromAPI } from '../../../services/api';
 import { useRouter } from 'next/navigation';
 
 // Types
@@ -143,7 +143,6 @@ const FitnessTracker: React.FC = () => {
 
     try {
       const savedActivity = await fetchFromAPI(
-        ACTIVITIES_API_URL,
         'activities',
         {
           method: 'POST',

@@ -6,6 +6,14 @@ spec:
   rules:
     - http:
         paths:
+          # Frontend - catch all routes not matching API
+          - path: /()(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000
           - path: /activities/*
             pathType: ImplementationSpecific
             backend:
