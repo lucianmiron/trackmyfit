@@ -39,8 +39,6 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
 
-  // Optimize for production
-  swcMinify: true,
   compress: true,
   
   // Image optimization

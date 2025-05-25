@@ -7,7 +7,7 @@ spec:
     - http:
         paths:
           # Frontend - catch all routes not matching API
-          - path: /()(.*)
+          - path: /frontend/*
             pathType: ImplementationSpecific
             backend:
               service:
