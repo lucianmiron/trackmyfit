@@ -19,7 +19,7 @@ export async function fetchFromAPI(
   endpoint: string,
   options: FetchOptions = {}
 ) {
-  const url = `${BASE_URL}/${endpoint}`;
+  const url = `${BASE_URL}/api/${endpoint}`;
   const { skipAuth, ...fetchOptions } = options;
 
   const defaultOptions: RequestInit = {
