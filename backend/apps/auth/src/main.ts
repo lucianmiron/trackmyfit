@@ -9,6 +9,10 @@ import { Logger } from 'nestjs-pino';
 async function bootstrap() {
   const app = await NestFactory.create(AuthModule);
   const configService = app.get(ConfigService);
+  
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api');
+
   app.connectMicroservice({
     transport: Transport.RMQ,
     options: {

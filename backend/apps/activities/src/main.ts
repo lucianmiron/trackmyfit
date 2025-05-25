@@ -7,6 +7,10 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(ActivitiesModule);
+
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api');
+  
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
