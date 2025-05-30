@@ -90,6 +90,10 @@ trackmyfit % kubectl get secret rabbitmq -o yaml > rabbitmq.yaml
 
 kubectl create -f rabbitmq.yaml
 
+### Debugging k8s
+Spawn a test-pod and call a service:
+kubectl run test-pod --image=curlimages/curl --rm -it --restart=Never -- curl http://activities:3001/api/activities/health
+
 # Google cloud services
 
 Artifacts Registry

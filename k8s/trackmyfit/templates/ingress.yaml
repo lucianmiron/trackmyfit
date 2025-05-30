@@ -6,23 +6,23 @@ spec:
   rules:
     - http:
         paths:
-          - path: /api/activities/*
-            pathType: ImplementationSpecific
+          - path: /api/activities
+            pathType: Prefix
             backend:
               service:
                 name: activities 
                 port:
                   number: 3001
-          - path: /api/auth/*
-            pathType: ImplementationSpecific
+          - path: /api/auth
+            pathType: Prefix
             backend:
               service:
                 name: auth 
                 port:
                   number: 3002
            # Frontend - catch all routes not matching API
-          - path: /*
-            pathType: ImplementationSpecific
+          - path: /
+            pathType: Prefix
             backend:
               service:
                 name: frontend
