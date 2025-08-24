@@ -34,4 +34,7 @@ RUN pnpm install --prod
 
 COPY --from=development /usr/src/app/dist ./dist
 
+RUN chown -R 1000:1000 /usr/src/app
+USER 1000
+
 CMD ["node", "dist/apps/auth/main"]
