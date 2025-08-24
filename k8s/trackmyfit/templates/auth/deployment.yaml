@@ -50,4 +50,5 @@ spec:
                 key: uri
         ports:
           - containerPort: 3002
-
+        securityContext:
+          allowPrivilegeEscalation: false
