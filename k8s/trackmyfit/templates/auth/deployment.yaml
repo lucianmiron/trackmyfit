@@ -17,6 +17,8 @@ spec:
       containers:
       - image: europe-central2-docker.pkg.dev/trackmyfit-459021/auth/production
         name: auth
+        securityContext:
+          readOnlyRootFilesystem: true
         env:
           - name: POSTGRES_HOST
             valueFrom:
